@@ -1,11 +1,13 @@
 package iama.sipet.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import jakarta.validation.constraints.NotEmpty;
 
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +41,12 @@ public class UserEntity {
     @NotNull(message = "La fecha de registro es obligatoria")
     private Date fecha_registro;
 
-    private String foto;
+    @Lob
+    @Column(name = "foto", columnDefinition = "LONGBLOB")
+    private byte[] foto;
+
+    @Column(name = "nombre_foto")
+    private String nombreFoto;
 
     @NotNull(message = "El estado es obligatorio")
     private Boolean estado;
@@ -62,4 +69,17 @@ public class UserEntity {
     public String getPassword() {
         return password;
     }
+
+    @JsonProperty("fotoBase64")
+    public String getFotoBase64() {
+        if (this.foto != null && this.foto.length > 0) {
+            return Base64.getEncoder().encodeToString(this.foto);
+        } else {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public byte[] getFoto() {return this.foto;}
+
 }

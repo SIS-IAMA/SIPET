@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -65,4 +66,16 @@ public class EmpleadoEntity {
     public AsignacionEntity getAsignacion() {
         return asignacion;
     }
+
+    @JsonProperty("fotoBase64")
+    public String getFotoBase64() {
+        if (this.foto != null && this.foto.length > 0) {
+            return Base64.getEncoder().encodeToString(this.foto);
+        } else {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public byte[] getFoto() {return this.foto;}
 }

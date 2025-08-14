@@ -39,11 +39,6 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
     @Autowired
     private UploadService uploadService;
 
-    String url = "https://sipet-iama.onrender.com/upload/FotosEmpleado/";
-    String urlUpload = "upload/FotosEmpleado/";
-
-    String urlResponsiva = "https://sipet-iama.onrender.com/upload/Responsivas/";
-
     @Override
     public ResponseEntity<EmpleadoResponseRest> buscarEmpleados() {
         log.info("Buscando empleados");

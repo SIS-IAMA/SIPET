@@ -38,5 +38,3 @@ EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
-CMD ["sh", "-c", "ls -R /app && sleep 3600"]
-

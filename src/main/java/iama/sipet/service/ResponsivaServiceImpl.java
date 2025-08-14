@@ -26,9 +26,6 @@ public class ResponsivaServiceImpl implements  IResponsivaService {
     @Autowired
     private ResponsivaRespository responsivaRespository;
 
-    String url = "https://sipet-iama.onrender.com/upload/";
-    String urlUpload = "upload/Responsivas/";
-
     @Override
     public ResponsivaEntity create(ResponsivaEntity responsiva, MultipartFile file) throws IOException {
         log.info("Creando Responsiva");
@@ -41,9 +38,8 @@ public class ResponsivaServiceImpl implements  IResponsivaService {
             }
             // Verificar si el archivo es nulo o vacío
             if (file != null && !file.isEmpty()) {
-                String name = uploadService.saveUpload(file, urlUpload);
-                responsiva.setPdf(name);
-
+                responsiva.setPdf(file.getBytes());
+                responsiva.setNombrePDF(file.getOriginalFilename());
             }else {
                 throw new IllegalArgumentException("No hay responsiva para subir");
             }
@@ -68,25 +64,14 @@ public class ResponsivaServiceImpl implements  IResponsivaService {
 
             ResponsivaEntity responsiva = responsivaOptional.get();
 
-            log.info(encode, " ", file.getOriginalFilename(), " ", responsiva.getPdf() );
-            // Verificar si el archivo es nulo o vacío
-            if ((encode != null && !encode.isEmpty()) && (file != null && !file.isEmpty())) {
+            if (!file.isEmpty() && file!=null){
                 // comprobar que la nueva responsiva no sea la misma
-                if (encode.equals(responsiva.getPdf())) {
-                    throw new IllegalArgumentException("La responsiva es la misma o tiene el mismo nombre");
+                if (Arrays.equals(responsiva.getPDF(), file.getBytes())){
+                    throw new IllegalArgumentException("La responsiva es la misma");
                 }
-
-                // Si la responsiva tiene un archivo previo, se elimina del servidor
-                String nombrePdfAnterior = responsiva.getPdf();
-                if (nombrePdfAnterior != null && !nombrePdfAnterior.isEmpty()) {
-                    uploadService.deleteUpload(nombrePdfAnterior, urlUpload);
-                }
-
                 // Guardar la nueva responsiva y actualizar el nombre del pdf en la responsiva
-                String nuevoPdf = uploadService.saveUpload(file, urlUpload);
-                responsiva.setPdf(nuevoPdf);
-                String name = uploadService.saveUpload(file, urlUpload);
-                responsiva.setPdf(name);
+                responsiva.setPdf(file.getBytes());
+                responsiva.setNombrePDF(file.getOriginalFilename());
             }else {
                 throw new IllegalArgumentException("No hay responsiva para subir");
             }
@@ -97,54 +82,5 @@ public class ResponsivaServiceImpl implements  IResponsivaService {
             log.info("Error interno para crear la responsiva " + e );
             throw new IllegalArgumentException(e.getMessage());
         }
-    }
-
-
-    @Override
-    public ResponsivaEntity save(MultipartFile file) throws IOException {
-        ResponsivaEntity responsiva= new ResponsivaEntity();
-        String name = uploadService.saveUpload(file, urlUpload);
-        responsiva.setPdf(name);
-        responsiva.setEstado(false);
-        responsiva.setFecha_registro(new Date());
-        return responsivaRespository.save(responsiva);
-    }
-
-    @Override
-    public ResponsivaEntity findById(Integer id) {
-        ResponsivaEntity responsiva = responsivaRespository.findById(id).get();
-        responsiva.setPdf(url + responsiva.getPdf());
-        return responsiva;
-       }
-
-    @Override
-    public List<ResponsivaEntity> findAll() {
-        List<ResponsivaEntity> responsivas = responsivaRespository.findAll();
-        responsivas = responsivas.stream()
-                .map(responsiva -> {
-                    responsiva.setPdf(url + responsiva.getPdf());
-                    return responsiva;
-                }).collect(Collectors.toList());
-        return responsivas;
-    }
-
-    //Actualizar pdf
-    @Override
-    public ResponsivaEntity update(Integer id, MultipartFile file) throws IOException {
-        ResponsivaEntity responsiva= new ResponsivaEntity();
-        responsiva.setId(id);
-        responsiva.setEstado(true);
-        String nombre = uploadService.saveUpload(file, urlUpload);
-        responsiva.setPdf(nombre);
-        return responsivaRespository.save(responsiva);
-    }
-
-    @Override
-    public void deleteById(Integer id) {
-        ResponsivaEntity responsiva = responsivaRespository.findById(id).get();
-        String nombre = responsiva.getPdf();
-        uploadService.deleteUpload(nombre, urlUpload);
-        responsivaRespository.delete(responsiva);
-
     }
 }

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.Base64;
+
 @Entity
 @Table(name = "equipo_tecnologico")
 @Data
@@ -44,7 +46,13 @@ public class EquipoTecnologicoEntity {
 
     private String procesador;
     private String comentario;
-    private String foto;
+
+    @Lob
+    @Column(name = "foto", columnDefinition = "LONGBLOB")
+    private byte[] foto;
+
+    @Column(name = "nombre_foto")
+    private String nombreFoto;
 
     @NotBlank(message = "El estado es obligatorio")
     private String estado;
@@ -60,4 +68,16 @@ public class EquipoTecnologicoEntity {
     public ListaEquiposEntity getListaEquipos() {
         return listaEquipos;
     }
+
+    @JsonProperty("fotoBase64")
+    public String getFotoBase64() {
+        if (this.foto != null && this.foto.length > 0) {
+            return Base64.getEncoder().encodeToString(this.foto);
+        } else {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public byte[] getFoto() {return this.foto;}
 }

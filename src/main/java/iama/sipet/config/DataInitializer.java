@@ -87,7 +87,7 @@ public class DataInitializer implements CommandLineRunner {
             user.setApellido_m(apellidoM);
             user.setRol(rol); // true = admin
             user.setFecha_registro(new Date());
-            user.setFoto("");
+            user.setFoto(null);
             user.setEstado(true);
             user.setToken("");
             user.setFecha_token(null);
@@ -109,7 +109,7 @@ public class DataInitializer implements CommandLineRunner {
             equipo.setAlmacenamiento(almacenamiento);
             equipo.setProcesador(procesador);
             equipo.setComentario(comentario);
-            equipo.setFoto("");
+            equipo.setFoto(null);
             equipo.setEstado(estado);
             equipoTecnologicoRespository.save(equipo);
         }
@@ -126,7 +126,7 @@ public class DataInitializer implements CommandLineRunner {
             emp.setDepartamento(depto);
             emp.setTelefono(telefono);
             emp.setFecha_registro(new Date());
-            emp.setFoto("");
+            emp.setFoto(null);
             emp.setEstado(true);
             emp.setAsignacion(null); // aún sin asignación
             empleadoRepo.save(emp);

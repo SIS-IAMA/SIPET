@@ -14,10 +14,4 @@ public interface IResponsivaService {
     ResponsivaEntity create (ResponsivaEntity responsiva, MultipartFile file) throws IOException;
     ResponsivaEntity updatee (Integer id, MultipartFile file) throws  IOException;
 
-    // Metodos de prueba
-    ResponsivaEntity save(MultipartFile file) throws IOException;
-    ResponsivaEntity findById(Integer id);
-    List<ResponsivaEntity> findAll();
-    ResponsivaEntity update(Integer id, MultipartFile file) throws IOException;
-    void deleteById(Integer id);
 }

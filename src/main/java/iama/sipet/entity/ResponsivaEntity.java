@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.Base64;
 import java.util.Date;
 
 @Entity
@@ -27,7 +28,12 @@ public class ResponsivaEntity {
     private AsignacionEntity asignacionActiva;
 
     @NotBlank(message = "La responsiva en formato pdf es obligatoria")
-    private String pdf;
+    @Lob
+    @Column(name = "pdf", columnDefinition = "LONGBLOB")
+    private byte[] pdf;
+
+    @Column(name = "nombre_pdf")
+    private String nombrePDF;
 
     @NotNull(message = "La fecha de registro es obligatoria")
     private Date fecha_registro;
@@ -55,4 +61,16 @@ public class ResponsivaEntity {
     public AsignacionEntity getAsignacionActiva() {
         return asignacionActiva;
     }
+
+    @JsonProperty("pdfBase64")
+    public String getPdfBase64() {
+        if (this.pdf != null && this.pdf.length > 0) {
+            return Base64.getEncoder().encodeToString(this.pdf);
+        } else {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public byte[] getPDF() {return this.pdf;}
 }

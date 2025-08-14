@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.Base64;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -32,7 +33,12 @@ public class PeticionesEntity {
     @NotBlank(message = "La categoría es obligatoria")
     private String categoria;
 
-    private String anexo;
+    @Lob
+    @Column(name = "pdf", columnDefinition = "LONGBLOB")
+    private byte[] pdf;
+
+    @Column(name = "nombre_pdf")
+    private String nombrePDF;
 
     @NotNull(message = "La fecha de registro es obligatoria")
     private Date fecha_registro;
@@ -63,4 +69,16 @@ public class PeticionesEntity {
     public UserEntity getUser() {
         return user;
     }
+
+    @JsonProperty("pdfBase64")
+    public String getPdfBase64() {
+        if (this.pdf != null && this.pdf.length > 0) {
+            return Base64.getEncoder().encodeToString(this.pdf);
+        } else {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public byte[] getPDF() {return this.pdf;}
 }

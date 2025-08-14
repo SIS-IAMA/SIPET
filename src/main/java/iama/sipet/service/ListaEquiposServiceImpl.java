@@ -45,13 +45,6 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
     @Autowired
     private UploadService uploadService;
 
-    String url = "https://sipet-iama.onrender.com/upload/FotosEquipos/";
-    String urlDonacion = "https://sipet-iama.onrender.com/upload/ListasEquipos/Donacion/";
-    String urlDesecho = "https://sipet-iama.onrender.com/upload/ListasEquipos/Desecho/";
-    String urlUpload = "upload/FotosEquipos/";
-    String urlUploadDonacion = "upload/ListasEquipos/Donacion/";
-    String urlUploadDesecho = "upload/ListasEquipos/Desecho/";
-
     @Override
     public ResponseEntity<ListaEquipoResponseRest> findAll() {
         log.info("Buscando operadores");
@@ -68,29 +61,16 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
                 return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.NOT_FOUND);
             }
 
-            // Iterar sobre las listas de equipo para agregar datos a la foto en el response
+            // Verificar si se encontraron los equipos
             for (ListaEquiposEntity existListEquipos : listaEquipos) {
-
-                // Asignar ruta para la foto dependiendo del tipo
-                if (existListEquipos.getTipo().equals("DESECHO")) {
-                    existListEquipos.setPdf(urlDesecho + existListEquipos.getPdf());
-                }
-                if (existListEquipos.getTipo().equals("DONACION")) {
-                    existListEquipos.setPdf(urlDonacion + existListEquipos.getPdf());
-                }
 
                 // Iterar sobre los equipos para agregar datos a la foto en el response
                 for (EquipoTecnologicoEntity equipo : existListEquipos.getEquipoTecnologico()) {
                     Optional<EquipoTecnologicoEntity> equipoOptional = equipoTecnologicoRespository
                             .findById(equipo.getId());
-                    if (equipoOptional.isPresent()) {
-                        EquipoTecnologicoEntity existEquipo = equipoOptional.get();
-                        if (existEquipo.getFoto() != null) {
-                            existEquipo.setFoto(url + existEquipo.getFoto());
-                        }
-                    } else {
+                    if (equipoOptional.isEmpty()) {
                         response.setMetada("Respuesta Fallida", "-1",
-                                "Equipo con id " + equipoOptional.get().getId() + " no encontrado");
+                                "Equipo con id " + equipo.getId() + " no encontrado");
                         return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.NOT_FOUND);
                     }
                 }
@@ -120,31 +100,14 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
 
                 // Asignar datos para el listado pdf dependiendo del tipo de lista
                 ListaEquiposEntity existList = listOptional.get();
-                log.info(existList.getTipo());
-                if (existList.getTipo().equals("DESECHO")) {
-                    existList.setPdf(urlDesecho + existList.getPdf());
-                } else {
-                    if (existList.getTipo().equals("DONACION")) {
-                        existList.setPdf(urlDonacion + existList.getPdf());
-                    } else {
-                        if (!existList.getTipo().equals("ASIGNACION")) {
-                            response.setMetada("Respuesta Fallida", "-1", "Lista con id " + existList.getId()
-                                    + " no fue posible asignar una ruta para obtener su listado pdf");
-                            return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.BAD_REQUEST);
-                        }
-                    }
-                }
 
-                // Iterar sobre los equipos para agregar datos a la foto en el response
+                // Iterar sobre los equipos para comprobar que existen
                 for (EquipoTecnologicoEntity equipo : existList.getEquipoTecnologico()) {
                     Optional<EquipoTecnologicoEntity> equipoOptional = equipoTecnologicoRespository
                             .findById(equipo.getId());
                     if (equipoOptional.isPresent()) {
-                        EquipoTecnologicoEntity existEquipo = equipoOptional.get();
-                        existEquipo.setFoto(url + existEquipo.getFoto());
-                    } else {
                         response.setMetada("Respuesta Fallida", "-1",
-                                "Equipo con id " + equipoOptional.get().getId() + " no encontrado");
+                                "Equipo con id " + equipo.getId() + " no encontrado");
                         return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.BAD_REQUEST);
                     }
                 }
@@ -158,9 +121,8 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
             response.getListaEquipoResponse().setListaEquipos(list);
             response.setMetada("Respuesta OK", "00", "Respuesta exitosa");
         } catch (Exception e) {
-            response.setMetada("Respuesta FALLIDA", "-1", "Respuesta fallida");
-            log.error("Error al buscar usuarios", e.getMessage());
-            e.getStackTrace();
+            response.setMetada("Respuesta FALLIDA", "-1", "e.getMessage()");
+            log.error("Error al buscar usuarios", e);
             return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.OK);
@@ -242,35 +204,14 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
 
                 // Verificar si el archivo es nulo o vacío
                 if (file != null && !file.isEmpty() && !existList.getTipo().equals("ASIGNACION")) {
-                    String nombre = existList.getPdf();
-                    if (existList.getTipo().equals("DONACION")) {
-                        uploadService.deleteUpload(nombre, urlUploadDonacion);
-                        existList.setPdf(uploadService.saveUpload(file, urlUploadDonacion));// url para donacion
-                    } else {
-                        if (existList.getTipo().equals("DESECHO")) {
-                            uploadService.deleteUpload(nombre, urlUploadDesecho);
-                            existList.setPdf(uploadService.saveUpload(file, urlUploadDesecho));// url para desecho
-                        } else {
-                            response.setMetada("Respuesta FALLIDA", "-1", "No fue posible guardar el pdf");
-                            return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.CONFLICT);
-                        }
-                    }
+                    existList.setPdf(file.getBytes());
+                    existList.setNombrePDF(file.getOriginalFilename());
                 }
 
                 ListaEquiposEntity Lista = listaEquiposRepository.save(existList);
 
-                log.info("tipo lista ", Lista.getTipo().toString());
-
                 if (!Lista.getTipo().equals("ASIGNACION")) {
-                    log.info("Entramos");
-
-                    if (Lista.getTipo().equals("DONACION")) {
-                        peticionesService.upload(idPeticion,urlUploadDonacion+Lista.getPdf());
-                    }
-                    if (Lista.getTipo().equals("DESECHO")) {
-                        peticionesService.upload(idPeticion,urlUploadDesecho+Lista.getPdf());
-                    }
-
+                    peticionesService.upload(idPeticion,Lista.getPDF(),Lista.getNombrePDF());
                 }
 
                 list.add(existList);
@@ -309,14 +250,6 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
 
             existList.setEquipoTecnologico(null);
             existList.setAsignacion(null);
-            String nombre = existList.getPdf();
-            if (existList.getTipo().equals("DESECHO")) {
-                uploadService.deleteUpload(nombre, urlUploadDesecho);
-            }
-
-            if (existList.getTipo().equals("DONACION")) {
-                uploadService.deleteUpload(nombre, urlUploadDonacion);
-            }
 
             listaEquiposRepository.delete(existList);
 

@@ -51,10 +51,6 @@ public class AsignacionServiceImpl implements IAsignacionService {
     @Autowired
     private ResponsivaRespository responsivaRespository;
 
-    String url = "https://sipet-iama.onrender.com/upload/Responsivas/";
-    String urlUpload = "upload/Responsivas/";
-    String urlEmpleado = "https://sipet-iama.onrender.com/upload/FotosEmpleado/";
-
     // Servicio para crear una asignacion
     @Override
     public ResponseEntity<AsignacionResponseRest> create(AsignacionEntity asignacionEntity, MultipartFile file)
@@ -169,7 +165,13 @@ public class AsignacionServiceImpl implements IAsignacionService {
             String username = authentication.getName(); // El username del usuario autenticado
             peticion.setUser(userRepository.findByUsername(username).get());
 
-            peticion.setAnexo(urlUpload + existResponsiva.getPdf());
+            if (file.isEmpty() || file == null) {
+                response.setMetada("Respuesta FALLIDA", "-1", "No se recibio el archivo PDF");
+                return new ResponseEntity<AsignacionResponseRest>(response, HttpStatus.NOT_FOUND);
+            }
+
+            peticion.setPdf(file.getBytes());
+            peticion.setNombrePDF(file.getOriginalFilename());
 
             peticionesService.create(peticion, file);
 
@@ -250,7 +252,7 @@ public class AsignacionServiceImpl implements IAsignacionService {
 
             // Se actualiza la peticon
             try {
-                peticionesService.upload(idPeticion, urlUpload + responsivaGuardada.getPdf());
+                peticionesService.upload(idPeticion, file.getBytes(),file.getOriginalFilename());
             } catch (Exception e) {
                 response.setMetada("Respuesta FALLIDA", "-1", "Error al crear la asignacion");
                 log.error("Error al crear la peticion", e);
@@ -434,7 +436,13 @@ public class AsignacionServiceImpl implements IAsignacionService {
                 String username = authentication.getName(); // El username del usuario autenticado
                 peticion.setUser(userRepository.findByUsername(username).get());
 
-                peticion.setAnexo(urlUpload + saveResponsiva.getPdf());
+                if(file.isEmpty() || file == null) {
+                    response.setMetada("Respuesta FALLIDA", "-1", "No se recibio el archivo PDF");
+                    return new ResponseEntity<AsignacionResponseRest>(response, HttpStatus.NOT_FOUND);
+                }
+
+                peticion.setPdf(file.getBytes());
+                peticion.setNombrePDF(file.getOriginalFilename());
 
                 peticionesService.create(peticion, file);
 
@@ -495,7 +503,7 @@ public class AsignacionServiceImpl implements IAsignacionService {
             asignacionRespository.save(existAsignacion);
 
             // Actualizar la peticion
-            peticionesService.upload(idPeticion, urlUpload + responsivaGuardada.getPdf());
+            peticionesService.upload(idPeticion, file.getBytes(), file.getOriginalFilename());
 
             list.add(existAsignacion);
             response.getAsignacionResponse().setAsignacion(list);
@@ -555,7 +563,9 @@ public class AsignacionServiceImpl implements IAsignacionService {
                 response.setMetada("Respuesta FALLIDA", "-1", "No se encontro la responsiva activa");
                 return new ResponseEntity<AsignacionResponseRest>(response, HttpStatus.NOT_FOUND);
             }
-            peticion.setAnexo(urlUpload + existResponsiva.get().getPdf());
+
+            peticion.setPdf(existResponsiva.get().getPDF());
+            peticion.setNombrePDF(existResponsiva.get().getNombrePDF());
 
             asignacionRespository.save(existAsignacion);
             peticionesService.create(peticion, null);
@@ -587,25 +597,12 @@ public class AsignacionServiceImpl implements IAsignacionService {
                 response.setMetada("Respuesta FALLIDA", "-1", "No se encontraron asignaciones");
                 return new ResponseEntity<AsignacionResponseRest>(response, HttpStatus.NOT_FOUND);
             }
-            for (AsignacionEntity asignacion : asinaciones) {
-
-                ResponsivaEntity saveResponsiva = responsivaRespository
-                        .findById(asignacion.getResponsivaActiva().getId()).get();
-                if (saveResponsiva.getPdf() != null && !saveResponsiva.getPdf().isEmpty()) {
-                    saveResponsiva.setPdf(url + saveResponsiva.getPdf());
-                }
-
-                EmpleadoEntity saveEmpleado = empleadoRepository.findById(asignacion.getEmpleado().getId()).get();
-                if (saveEmpleado.getFoto() != null && !saveEmpleado.getFoto().isEmpty()) {
-                    saveEmpleado.setFoto(urlEmpleado + saveEmpleado.getFoto());
-                }
-            }
 
             response.getAsignacionResponse().setAsignacion(asinaciones);
             response.setMetada("Respuesta OK", "00", "Respuesta exitosa");
         } catch (Exception e) {
             response.setMetada("Respuesta FALLIDA", "-1", "Respuesta fallida");
-            log.error("Error al buscar asignaciones", e.getMessage());
+            log.error("Error al buscar asignaciones", e);
             return new ResponseEntity<AsignacionResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<AsignacionResponseRest>(response, HttpStatus.OK);
@@ -627,17 +624,6 @@ public class AsignacionServiceImpl implements IAsignacionService {
             }
 
             AsignacionEntity asignacion = asignacionOptional.get();
-
-            ResponsivaEntity saveResponsiva = responsivaRespository.findById(asignacion.getResponsivaActiva().getId())
-                    .get();
-            if (saveResponsiva.getPdf() != null && !saveResponsiva.getPdf().isEmpty()) {
-                saveResponsiva.setPdf(url + saveResponsiva.getPdf());
-            }
-
-            EmpleadoEntity saveEmpleado = empleadoRepository.findById(asignacion.getEmpleado().getId()).get();
-            if (saveEmpleado.getFoto() != null && !saveEmpleado.getFoto().isEmpty()) {
-                saveEmpleado.setFoto(urlEmpleado + saveEmpleado.getFoto());
-            }
 
             list.add(asignacion);
             response.getAsignacionResponse().setAsignacion(list);

@@ -14,6 +14,7 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -227,6 +228,7 @@ public class MailServiceImpl implements IMailService {
                 System.out.println("No hay conexión a internet. No se puede enviar el correo.");
                 throw new IllegalArgumentException("Sin internet, no se puede enviar el correo");
             }
+
             PeticionesEntity peticion = event.getPeticion();
             log.info(peticion.toString());
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -236,17 +238,20 @@ public class MailServiceImpl implements IMailService {
             String title = "";
             String Usuario = authentication.getName(); // El username del usuario autenticado
 
-            if (peticion.getCategoria().equals("ASIGNACIONES")){
-                AsignacionEntity existAsignaion = asignacionRespository.findById(peticion.getId_entidad()).get();
-                String nombreEmpleado = existAsignaion.getEmpleado().getNombre() +" "+ existAsignaion.getEmpleado().getApellido_p() +" "+ existAsignaion.getEmpleado().getApellido_m();
+            if (peticion.getCategoria().equals("ASIGNACIONES")) {
+                AsignacionEntity existAsignacion = asignacionRespository.findById(peticion.getId_entidad()).get();
+                String nombreEmpleado = existAsignacion.getEmpleado().getNombre() + " " +
+                        existAsignacion.getEmpleado().getApellido_p() + " " +
+                        existAsignacion.getEmpleado().getApellido_m();
                 title = "Responsiva de " + nombreEmpleado;
-                html= "<p>Esta es la responsiva de <strong>"+nombreEmpleado+"</strong></p>";
+                html = "<p>Esta es la responsiva de <strong>" + nombreEmpleado + "</strong></p>";
             }
 
-            if (peticion.getCategoria().equals("LISTAS")){
-                ListaEquiposEntity listaEquipos =  listaEquiposRepository.findById(peticion.getId_entidad()).get();
-                title = "Lista de "+ listaEquipos.getTipo().toLowerCase();
-                html= "<p>Esta es la lista de <strong>"+listaEquipos.getTipo().toLowerCase()+"</strong> creada el "+ listaEquipos.getFecha_registro() +"</p>";
+            if (peticion.getCategoria().equals("LISTAS")) {
+                ListaEquiposEntity listaEquipos = listaEquiposRepository.findById(peticion.getId_entidad()).get();
+                title = "Lista de " + listaEquipos.getTipo().toLowerCase();
+                html = "<p>Esta es la lista de <strong>" + listaEquipos.getTipo().toLowerCase() +
+                        "</strong> creada el " + listaEquipos.getFecha_registro() + "</p>";
             }
 
             helper.setTo(Usuario);
@@ -254,16 +259,23 @@ public class MailServiceImpl implements IMailService {
             helper.setText(html, true);
             helper.setFrom("soporteti.gama@gmail.com");
 
-            FileSystemResource file = new FileSystemResource(new File(peticion.getAnexo()));
-            helper.addAttachment(file.getFilename(), file);
+            // 📌 Cambiamos FileSystemResource por ByteArrayResource
+            if (peticion.getPDF() != null && peticion.getPDF().length > 0) {
+                ByteArrayResource pdfResource = new ByteArrayResource(peticion.getPDF());
+                String nombreArchivo = (peticion.getNombrePDF() != null && !peticion.getNombrePDF().isEmpty())
+                        ? peticion.getNombrePDF()
+                        : "documento.pdf";
+
+                helper.addAttachment(nombreArchivo, pdfResource);
+            }
 
             mailSender.send(mimeMessage);
             System.out.println("Enviando correo por nueva petición: " + peticion.getId());
-        }catch (IllegalArgumentException e) {
+
+        } catch (IllegalArgumentException e) {
             log.error("Error al enviar el archivo ", e.getMessage());
             throw new MessagingException("Error al enviar correo por nueva petición", e);
         }
-
     }
 
     public static String generateToken() {

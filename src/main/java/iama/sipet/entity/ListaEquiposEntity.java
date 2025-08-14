@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -30,7 +31,12 @@ public class ListaEquiposEntity {
     @JoinColumn(name = "id_asignacion_lista")
     private AsignacionEntity asignacion;
 
-    private String pdf;
+    @Lob
+    @Column(name = "pdf", columnDefinition = "LONGBLOB")
+    private byte[] pdf;
+
+    @Column(name = "nombre_pdf")
+    private String nombrePDF;
 
     @NotBlank(message = "El tipo de lista es obligatorio")
     private String tipo;
@@ -51,4 +57,16 @@ public class ListaEquiposEntity {
     public AsignacionEntity getAsignacion() {
         return asignacion;
     }
+
+    @JsonProperty("pdfBase64")
+    public String getPdfBase64() {
+        if (this.pdf != null && this.pdf.length > 0) {
+            return Base64.getEncoder().encodeToString(this.pdf);
+        } else {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public byte[] getPDF() {return this.pdf;}
 }

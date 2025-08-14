@@ -66,12 +66,6 @@ public class PeticionesServiceImpl implements IPeticionService {
     @Autowired
     private UploadService uploadService;
 
-    String url = "https://sipet-iama.onrender.com/";
-
-    String urlResponsivaUpload = "upload/Responsivas/";
-    String urlListasDesechoUpload = "upload/ListasEquipos/Desecho/";
-    String urlListasDonacionUpload = "upload/ListasEquipos/Donacion/";
-
     // Crear peticiones
     @Override
     public Boolean create(PeticionesEntity peticionesEntity, MultipartFile file) throws IOException {
@@ -512,7 +506,7 @@ public class PeticionesServiceImpl implements IPeticionService {
     }
 
     @Override
-    public Boolean upload(Integer id, String file) throws IOException {
+    public Boolean upload(Integer id, byte[] file, String nombre) throws IOException {
         log.info("Actualizando peticion");
         try {
             Optional<PeticionesEntity> peticionOptional = peticionesRepository.findById(id);
@@ -520,7 +514,8 @@ public class PeticionesServiceImpl implements IPeticionService {
                 throw new IllegalArgumentException("No encontro la peticion");
             }
             PeticionesEntity peticionesEntity = peticionOptional.get();
-            peticionesEntity.setAnexo(file);
+            peticionesEntity.setPdf(file);
+            peticionesEntity.setNombrePDF(nombre);
             peticionesEntity.setEstado("PENDIENTE");
 
             peticionesRepository.save(peticionesEntity);
@@ -601,13 +596,6 @@ public class PeticionesServiceImpl implements IPeticionService {
 
                                     existAsignacion.setListaEquipos(null);
 
-                                    if (existAsignacion.getResponsivaActiva() != null) {
-                                        // Eliminar responsiva relacionadas
-                                        String nombre = existAsignacion.getResponsivaActiva().getPdf();
-                                        uploadService.deleteUpload(nombre, urlResponsivaUpload);
-                                        existAsignacion.getResponsivaActiva().setAsignacionActiva(null);
-                                        responsivaRespository.delete(existAsignacion.getResponsivaActiva());
-                                    }
 
                                     EmpleadoEntity existEmpleado = existAsignacion.getEmpleado();
                                     if (existEmpleado != null) {
@@ -687,8 +675,6 @@ public class PeticionesServiceImpl implements IPeticionService {
                                     // Revobinar responsiva
                                     if (existAsignacion.getResponsivaActiva() != null) {
                                         // Eliminar responsiva relacionada
-                                        String nombre = existAsignacion.getResponsivaActiva().getPdf();
-                                        uploadService.deleteUpload(nombre, urlResponsivaUpload);
                                         existAsignacion.getResponsivaActiva().setAsignacionActiva(null);
                                         responsivaRespository.delete(existAsignacion.getResponsivaActiva());
                                     }
@@ -778,19 +764,6 @@ public class PeticionesServiceImpl implements IPeticionService {
                             // Guardar datos del equipo actualizado
                             equipoRepository.save(existEquipo);
                         }
-                        // Actualizar y guardar estado de la lista
-                        String nombre = existList.getPdf();
-                        // Actualizar el estado del equipo dependiendo del estado
-                        switch (existList.getTipo()) {
-                            case "DONACION":
-                                uploadService.deleteUpload(nombre, urlListasDonacionUpload);
-                                break;
-                            case "DESECHO":
-                                uploadService.deleteUpload(nombre, urlListasDesechoUpload);
-                                break;
-                            default:
-                                throw new IllegalArgumentException("Tipo de lista invalido");
-                        }
                         existList.getEquipoTecnologico().clear();
                         listaEquiposRepository.save(existList);
                         listaEquiposRepository.delete(existList);
@@ -826,17 +799,6 @@ public class PeticionesServiceImpl implements IPeticionService {
             if (peticiones.isEmpty()) {
                 response.setMetada("Respuesta ok", "00", "No se encontraron peticiones");
                 return new ResponseEntity<PeticionesResponseRest>(response, HttpStatus.NOT_FOUND);
-            }
-
-            // Iterar sobre las peticiones y agregar sus datos al response
-            for (PeticionesEntity peticion : peticiones) {
-                // Verificar si el operador tiene una foto
-                if (peticion.getAnexo() != null && !peticion.getAnexo().isEmpty()) {
-                    String fotoUrl = url + peticion.getAnexo();
-                    peticion.setAnexo(fotoUrl);
-                } else {
-                    peticion.setAnexo(null); // Si no tiene anexo, establecer como null
-                }
             }
 
             response.getPeticionesResponse().setPeticion(peticiones);
@@ -889,17 +851,6 @@ public class PeticionesServiceImpl implements IPeticionService {
             if (peticiones.isEmpty()) {
                 response.setMetada("Respuesta ok", "-1", "No se encontraron peticiones");
                 return new ResponseEntity<PeticionesResponseRest>(response, HttpStatus.NOT_FOUND);
-            }
-
-            // Iterar sobre las peticiones y agregar sus datos al response
-            for (PeticionesEntity peticion : peticiones) {
-                // Verificar si el operador tiene una foto
-                if (peticion.getAnexo() != null && !peticion.getAnexo().isEmpty()) {
-                    String fotoUrl = url + peticion.getAnexo();
-                    peticion.setAnexo(fotoUrl);
-                } else {
-                    peticion.setAnexo(null); // Si no tiene anexo, establecer como null
-                }
             }
 
             response.getPeticionesResponse().setPeticion(peticiones);

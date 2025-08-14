@@ -27,9 +27,6 @@ public class OperadorServiceImpl implements IOperadorService {
     @Autowired
     private UserRepository userRepository;
 
-    String url = "https://sipet-iama.onrender.com/upload/FotosOperador/";
-    String urlUpload = "upload/FotosOperador/";
-
     // obtener todos los operadores activos
     @Override
     public ResponseEntity<UserResponseRest> buscarOperadores() {
@@ -45,17 +42,6 @@ public class OperadorServiceImpl implements IOperadorService {
                 log.info("No se encontraron operadores");
                 response.setMetada("Respuesta OK", "00", "No se encontraron operadores");
                 return new ResponseEntity<UserResponseRest>(response, HttpStatus.NOT_FOUND);
-            }
-
-            // Iterar sobre los operadores y agregar sus datos al response
-            for (UserEntity operador : user) {
-                // Verificar si el operador tiene una foto
-                if (operador.getFoto() != null && !operador.getFoto().isEmpty()) {
-                    String fotoUrl = url + operador.getFoto();
-                    operador.setFoto(fotoUrl);
-                } else {
-                    operador.setFoto(null); // Si no tiene foto, establecer como null
-                }
             }
 
             response.getUserResponse().setUser(user);
@@ -82,12 +68,6 @@ public class OperadorServiceImpl implements IOperadorService {
             if (user.isPresent()) {
 
                 UserEntity userEntity = user.get();
-
-                if (userEntity.getFoto() == null || userEntity.getFoto().isEmpty()) {
-                    userEntity.setFoto(null);
-                } else {
-                    userEntity.setFoto(url + userEntity.getFoto());
-                }
 
                 list.add(userEntity);
                 response.getUserResponse().setUser(list);
@@ -135,11 +115,9 @@ public class OperadorServiceImpl implements IOperadorService {
                 return new ResponseEntity<UserResponseRest>(response, HttpStatus.CONFLICT);
             }
 
-            // Verificar foto
             if (file != null && !file.isEmpty()) {
-                // Guardar la nueva foto y actualizar el usuario
-                String name = uploadService.saveUpload(file, urlUpload);
-                userEntity.setFoto(name);
+                userEntity.setFoto(file.getBytes());
+                userEntity.setNombreFoto(file.getOriginalFilename());
             }
 
             // Encriptar la contraseña
@@ -239,19 +217,10 @@ public class OperadorServiceImpl implements IOperadorService {
                     campoDiferente = true;
                 }
 
-                // Verificar foto
-                if ((encode != null && !encode.isEmpty()) && (file != null && !file.isEmpty())) {
-                    log.info("entramos");
-                    // Si hay un nuevo archivo, eliminar la foto anterior si existe
-                    if (existingUser.getFoto() != null && !existingUser.getFoto().isEmpty()) {
-                        uploadService.deleteUpload(existingUser.getFoto(), urlUpload);
-                    }
-
-                    // Guardar la nueva foto y actualizar el usuario
-                    String name = uploadService.saveUpload(file, urlUpload);
-                    existingUser.setFoto(name);
+                if (file != null && !file.isEmpty()) {
+                    existingUser.setFoto(file.getBytes());
+                    existingUser.setNombreFoto(file.getOriginalFilename());
                     campoDiferente = true;
-
                 }
 
                 if (campoDiferente == false) {
@@ -420,12 +389,6 @@ public class OperadorServiceImpl implements IOperadorService {
             if (userOptional.isPresent()) {
 
                 UserEntity userEntity = userOptional.get();
-
-                if (userEntity.getFoto() == null || userEntity.getFoto().isEmpty()) {
-                    userEntity.setFoto(null);
-                } else {
-                    userEntity.setFoto(url + userEntity.getFoto());
-                }
 
                 list.add(userEntity);
                 response.getUserResponse().setUser(list);

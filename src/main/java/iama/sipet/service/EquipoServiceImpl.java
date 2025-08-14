@@ -43,13 +43,6 @@ public class EquipoServiceImpl implements IEquipoService {
     @Autowired
     private UploadService uploadService;
 
-    String url = "https://sipet-iama.onrender.com/upload/FotosEquipos/";
-    String urlDonacion = "https://sipet-iama.onrender.com/upload/ListasEquipos/Donacion/";
-    String urlDesecho = "https://sipet-iama.onrender.com/upload/ListasEquipos/Desecho/";
-    String urlUpload = "upload/FotosEquipos/";
-    String urlUploadDonacion = "upload/ListasEquipos/Donacion/";
-    String urlUploadDesecho = "upload/ListasEquipos/Desecho/";
-
     @Override
     public ResponseEntity<EquiposResponseRest> crear(EquipoTecnologicoEntity equipoTecnologicoEntity,
             MultipartFile file) throws IOException {
@@ -78,10 +71,9 @@ public class EquipoServiceImpl implements IEquipoService {
                 return new ResponseEntity<EquiposResponseRest>(response, HttpStatus.BAD_REQUEST);
             }
 
-            // Verificar si el archivo es nulo o vacío
-            if (encode != null && !encode.isEmpty()) {
-                String name = uploadService.saveUpload(file, urlUpload);
-                equipoTecnologicoEntity.setFoto(name);
+            if (file != null && !file.isEmpty()) {
+                equipoTecnologicoEntity.setFoto(file.getBytes());
+                equipoTecnologicoEntity.setNombreFoto(file.getOriginalFilename());
             }
 
             equipoTecnologicoEntity.setEstado("ACTIVO");
@@ -120,12 +112,6 @@ public class EquipoServiceImpl implements IEquipoService {
                 return new ResponseEntity<EquiposResponseRest>(response, HttpStatus.NOT_FOUND);
             }
 
-            for (EquipoTecnologicoEntity equipo : equipos) {
-                if (equipo.getFoto() != null && !equipo.getFoto().isEmpty()) {
-                    equipo.setFoto(url + equipo.getFoto());
-                }
-            }
-
             response.getEquiposResponse().setEquipo(equipos);
             response.setMetada("Respuesta OK", "00", "Respuesta exitosa");
         } catch (Exception e) {
@@ -153,11 +139,6 @@ public class EquipoServiceImpl implements IEquipoService {
                 return new ResponseEntity<EquiposResponseRest>(response, HttpStatus.NOT_FOUND);
             }
 
-            for (EquipoTecnologicoEntity equipo : equipos) {
-                if (equipo.getFoto() != null && !equipo.getFoto().isEmpty()) {
-                    equipo.setFoto(url + equipo.getFoto());
-                }
-            }
 
             response.getEquiposResponse().setEquipo(equipos);
             response.setMetada("Respuesta OK", "00", "Respuesta exitosa");
@@ -186,12 +167,6 @@ public class EquipoServiceImpl implements IEquipoService {
                 return new ResponseEntity<EquiposResponseRest>(response, HttpStatus.NOT_FOUND);
             }
 
-            for (EquipoTecnologicoEntity equipo : equipos) {
-                if (equipo.getFoto() != null && !equipo.getFoto().isEmpty()) {
-                    equipo.setFoto(url + equipo.getFoto());
-                }
-            }
-
             response.getEquiposResponse().setEquipo(equipos);
             response.setMetada("Respuesta OK", "00", "Respuesta exitosa");
         } catch (Exception e) {
@@ -215,10 +190,6 @@ public class EquipoServiceImpl implements IEquipoService {
             if (equipo.isPresent()) {
 
                 EquipoTecnologicoEntity equipoTecnologicoEntity = equipo.get();
-
-                if (equipoTecnologicoEntity.getFoto() != null && !equipoTecnologicoEntity.getFoto().isEmpty()) {
-                    equipoTecnologicoEntity.setFoto(url + equipoTecnologicoEntity.getFoto());
-                }
 
                 list.add(equipoTecnologicoEntity);
                 response.getEquiposResponse().setEquipo(list);
@@ -339,17 +310,9 @@ public class EquipoServiceImpl implements IEquipoService {
                 sinCambios = false;
             }
 
-            // Verificar si se proporciona un archivo para actualizar la foto
-            if ((encode != null && !encode.isEmpty()) && (file != null && !file.isEmpty())) {
-                // Si el equipo tiene una foto previa, se elimina del servidor
-                String nombreFotoAnterior = existingEquipo.getFoto();
-                if (nombreFotoAnterior != null && !nombreFotoAnterior.isEmpty()) {
-                    uploadService.deleteUpload(nombreFotoAnterior, urlUpload);
-                }
-
-                // Guardar la nueva foto y actualizar el nombre en el equipo
-                String nuevaFoto = uploadService.saveUpload(file, urlUpload);
-                existingEquipo.setFoto(nuevaFoto);
+            if (file != null && !file.isEmpty()) {
+                existingEquipo.setFoto(file.getBytes());
+                existingEquipo.setNombreFoto(file.getOriginalFilename());
                 sinCambios = false;
             }
 
@@ -360,7 +323,6 @@ public class EquipoServiceImpl implements IEquipoService {
 
             // Guardar los cambios en la base de datos
             EquipoTecnologicoEntity updatedEquipo = equipoRepository.save(existingEquipo);
-            updatedEquipo.setFoto(url + updatedEquipo.getFoto());
             list.add(updatedEquipo);
             response.getEquiposResponse().setEquipo(list);
             response.setMetada("Respuesta OK", "00", "Equipo actualizado correctamente");
@@ -409,16 +371,8 @@ public class EquipoServiceImpl implements IEquipoService {
 
             // Verificar si el archivo es nulo o vacío
             if (encode != null && !encode.isEmpty() && !tipo.equals("ASIGNACION")) {
-                if (tipo.equals("DONACION")) {
-                    savedList.setPdf(uploadService.saveUpload(file, urlUploadDonacion));// url para donacion
-                } else {
-                    if (tipo.equals("DESECHO")) {
-                        savedList.setPdf(uploadService.saveUpload(file, urlUploadDesecho));// url para desecho
-                    } else {
-                        response.setMetada("Respuesta FALLIDA", "-1", "No fue posible guardar el pdf");
-                        return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.CONFLICT);
-                    }
-                }
+                savedList.setPdf(file.getBytes());
+                savedList.setNombrePDF(file.getOriginalFilename());
             }
 
             // Asignar la fecha de registro
@@ -470,16 +424,8 @@ public class EquipoServiceImpl implements IEquipoService {
                 String username = authentication.getName(); // El username del usuario autenticado
                 peticion.setUser(userRepository.findByUsername(username).get());
 
-                if (savedList.getTipo().equals("DONACION")) {
-                    peticion.setAnexo(urlUploadDonacion + Lista.getPdf());
-                    log.info(urlUploadDonacion + Lista.getPdf());
-                }
-
-                if (savedList.getTipo().equals("DESECHO")) {
-                    peticion.setAnexo(urlUploadDesecho + Lista.getPdf());
-                    log.info(urlUploadDesecho + Lista.getPdf());
-                }
-
+                peticion.setPdf(file.getBytes());
+                peticion.setNombrePDF(file.getOriginalFilename());
                 peticionesService.create(peticion, file);
 
             }

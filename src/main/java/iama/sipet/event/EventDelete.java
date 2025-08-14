@@ -69,18 +69,10 @@ public class EventDelete {
             for (EmpleadoEntity empleado : empleadosAntiguos) {
                 System.out.println("Eliminando empleado inactivo con más de 2 meses: " + empleado.getId());
                 // Aquí puedes agregar lógica adicional si es necesario antes de eliminar
-                String fotoEmpleado = empleado.getFoto();
-                if (fotoEmpleado != null && !fotoEmpleado.isEmpty()) {
-                    System.out.println("Eliminando foto del empleado inactivo con más de 2 meses: " + empleado.getFoto());
-                    uploadService.deleteUpload(fotoEmpleado, urlEmpleado);
-                }
+
                 if (empleado.getResponsiva() != null && !empleado.getResponsiva().isEmpty()) {
                     for (ResponsivaEntity responsiva : empleado.getResponsiva()){
-                        System.out.println("Eliminando responsiva del empleado inactivo con más de 2 meses: " + responsiva.getPdf());
-                        String pdfResponsiva = responsiva.getPdf();
-                        if (pdfResponsiva != null && !pdfResponsiva.isEmpty()) {
-                            uploadService.deleteUpload(pdfResponsiva, urlResponsivas);
-                        }
+                        System.out.println("Eliminando responsiva del empleado con más de 2 meses de inactividad: " + responsiva.getNombrePDF());
                         responsivaRespository.delete(responsiva);
                     }
                 }
@@ -93,11 +85,7 @@ public class EventDelete {
         if (!operadoresAntiguos.isEmpty()) {
             for (UserEntity operador : operadoresAntiguos) {
                 System.out.println("Eliminando operador con más de 2 meses de inactividad: " + operador.getId());
-                String fotoOperador = operador.getFoto();
-                if (fotoOperador != null && !fotoOperador.isEmpty()) {
-                    System.out.println("Eliminando foto del operador con más de 2 meses de inactividad: " + operador.getFoto());
-                    uploadService.deleteUpload(fotoOperador, urlOperador);
-                }
+
                 userRepository.delete(operador);
             }
         }
@@ -108,19 +96,6 @@ public class EventDelete {
         if (!listasAntiguas.isEmpty()) {
             for (ListaEquiposEntity lista : listasAntiguas) {
                 System.out.println("Eliminando Listas con más de 6 meses creadas: " + lista.getId());
-                // Eliminar PDF de la lista
-                String pdfLista = lista.getPdf();
-                if (pdfLista != null && !pdfLista.isEmpty()) {
-                    System.out.println("Eliminando pdf de Listas con más de 6 meses creadas: " + pdfLista);
-                    if (lista.getTipo() != null && !lista.getTipo().isEmpty()) {
-                        if (lista.getTipo().equals("DONACION")) {
-                            uploadService.deleteUpload(pdfLista, urlListaDonacion);
-                        }
-                        if (lista.getTipo().equals("DESECHO")) {
-                            uploadService.deleteUpload(pdfLista, urlListaDesecho);
-                        }
-                    }
-                }
 
                 // Eliminar equipos tecnológicos asociados a la lista
                 List<EquipoTecnologicoEntity> equiposTecnologicos = lista.getEquipoTecnologico();
@@ -128,11 +103,6 @@ public class EventDelete {
                     for (EquipoTecnologicoEntity equipo : equiposTecnologicos) {
                         System.out.println("Eliminando equipo de la lista con más de 6 meses creadas: " + equipo.getId());
 
-                        String fotoEquipo = equipo.getFoto();
-                        if (fotoEquipo != null && !fotoEquipo.isEmpty()) {
-                            System.out.println("Eliminando foto del equipo de la lista con más de 6 meses creada: " + equipo.getFoto());
-                            uploadService.deleteUpload(fotoEquipo, urlEquipo);
-                        }
                         equipoTecnologicoRepository.delete(equipo);
                     }
                 }

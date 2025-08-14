@@ -58,6 +58,7 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
                 return new ResponseEntity<EmpleadoResponseRest>(response, HttpStatus.NOT_FOUND);
             }
 
+            /*
             for (EmpleadoEntity empleado : empleados) {
                 if (empleado.getFoto() != null && !empleado.getFoto().isEmpty()) {
                     empleado.setFoto(url + empleado.getFoto());
@@ -71,7 +72,7 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
                     }
                 }
 
-            }
+            }*/
 
             response.getEmpleadoResponse().setEmpleado(empleados);
             response.setMetada("Respuesta OK", "00", "Respuesta exitosa");
@@ -93,7 +94,7 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
 
             // Comprobar si el empleado existe
             if (empleado.isPresent()) {
-
+/*
                 if (empleado.get().getFoto() != null && !empleado.get().getFoto().isEmpty()) {
                     empleado.get().setFoto(url + empleado.get().getFoto());
                 }
@@ -104,7 +105,7 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
                             responsiva.setPdf(urlResponsiva + responsiva.getPdf());
                         }
                     }
-                }
+                }*/
 
                 List<EmpleadoEntity> empleados = new ArrayList<>();
                 empleados.add(empleado.get());
@@ -165,9 +166,9 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
             }
 
             // Verificar si el archivo es nulo o vacío
-            if (encode != null && !encode.isEmpty()) {
-                String name = uploadService.saveUpload(file, urlUpload);
-                empleadoEntity.setFoto(name);
+            if (file != null && !file.isEmpty()) {
+                empleadoEntity.setFoto(file.getBytes());
+                empleadoEntity.setNombreFoto(file.getOriginalFilename());
             }
 
             empleadoEntity.setEstado(true);
@@ -261,16 +262,9 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
                     campoDiferente = true;
                 }
 
-                // Comprobar Foto
-                if ((encode != null && !encode.isEmpty()) && (file != null && !file.isEmpty())) {
-                    // Si hay un nuevo archivo, eliminar la foto anterior si existe
-                    if (existingEmpleado.getFoto() != null && !existingEmpleado.getFoto().isEmpty()) {
-                        uploadService.deleteUpload(existingEmpleado.getFoto(), urlUpload);
-                    }
-
-                    // Guardar la nueva foto y actualizar el Empleado
-                    String name = uploadService.saveUpload(file, urlUpload);
-                    existingEmpleado.setFoto(name);
+                if (file != null && !file.isEmpty()) {
+                    existingEmpleado.setFoto(file.getBytes());
+                    existingEmpleado.setNombreFoto(file.getOriginalFilename());
                     campoDiferente = true;
                 }
 
@@ -334,8 +328,6 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 String username = authentication.getName(); // El username del usuario autenticado
                 peticion.setUser(userRepository.findByUsername(username).get());
-
-                peticion.setAnexo(null);
 
                 peticionesService.create(peticion, null);
 

@@ -47,7 +47,12 @@ public class EmpleadoEntity {
     @NotNull(message = "La fecha de registro es obligatoria")
     private Date fecha_registro;
 
-    private String foto;
+    @Lob
+    @Column(name = "foto", columnDefinition = "LONGBLOB")
+    private byte[] foto;
+
+    @Column(name = "nombre_foto")
+    private String nombreFoto;
 
     private boolean estado;
 

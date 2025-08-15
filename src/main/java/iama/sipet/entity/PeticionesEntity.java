@@ -79,6 +79,4 @@ public class PeticionesEntity {
         }
     }
 
-    @JsonIgnore
-    public byte[] getPDF() {return this.pdf;}
 }

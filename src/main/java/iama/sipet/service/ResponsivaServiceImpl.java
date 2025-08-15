@@ -66,7 +66,7 @@ public class ResponsivaServiceImpl implements  IResponsivaService {
 
             if (!file.isEmpty() && file!=null){
                 // comprobar que la nueva responsiva no sea la misma
-                if (Arrays.equals(responsiva.getPDF(), file.getBytes())){
+                if (Arrays.equals(responsiva.getPdf(), file.getBytes())){
                     throw new IllegalArgumentException("La responsiva es la misma");
                 }
                 // Guardar la nueva responsiva y actualizar el nombre del pdf en la responsiva

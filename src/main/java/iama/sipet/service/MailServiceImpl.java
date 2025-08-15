@@ -259,9 +259,9 @@ public class MailServiceImpl implements IMailService {
             helper.setText(html, true);
             helper.setFrom("soporteti.gama@gmail.com");
 
-            // 📌 Cambiamos FileSystemResource por ByteArrayResource
-            if (peticion.getPDF() != null && peticion.getPDF().length > 0) {
-                ByteArrayResource pdfResource = new ByteArrayResource(peticion.getPDF());
+            // Cambiamos FileSystemResource por ByteArrayResource
+            if (peticion.getPdf() != null && peticion.getPdf().length > 0) {
+                ByteArrayResource pdfResource = new ByteArrayResource(peticion.getPdf());
                 String nombreArchivo = (peticion.getNombrePDF() != null && !peticion.getNombrePDF().isEmpty())
                         ? peticion.getNombrePDF()
                         : "documento.pdf";
@@ -273,7 +273,7 @@ public class MailServiceImpl implements IMailService {
             System.out.println("Enviando correo por nueva petición: " + peticion.getId());
 
         } catch (IllegalArgumentException e) {
-            log.error("Error al enviar el archivo ", e.getMessage());
+            log.error("Error al enviar el archivo ", e);
             throw new MessagingException("Error al enviar correo por nueva petición", e);
         }
     }

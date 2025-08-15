@@ -71,6 +71,4 @@ public class ResponsivaEntity {
         }
     }
 
-    @JsonIgnore
-    public byte[] getPDF() {return this.pdf;}
 }

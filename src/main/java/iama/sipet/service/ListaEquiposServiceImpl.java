@@ -211,7 +211,7 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
                 ListaEquiposEntity Lista = listaEquiposRepository.save(existList);
 
                 if (!Lista.getTipo().equals("ASIGNACION")) {
-                    peticionesService.upload(idPeticion,Lista.getPDF(),Lista.getNombrePDF());
+                    peticionesService.upload(idPeticion,Lista.getPdf(),Lista.getNombrePDF());
                 }
 
                 list.add(existList);

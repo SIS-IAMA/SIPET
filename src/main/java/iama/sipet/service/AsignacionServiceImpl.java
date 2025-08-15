@@ -564,7 +564,7 @@ public class AsignacionServiceImpl implements IAsignacionService {
                 return new ResponseEntity<AsignacionResponseRest>(response, HttpStatus.NOT_FOUND);
             }
 
-            peticion.setPdf(existResponsiva.get().getPDF());
+            peticion.setPdf(existResponsiva.get().getPdf());
             peticion.setNombrePDF(existResponsiva.get().getNombrePDF());
 
             asignacionRespository.save(existAsignacion);

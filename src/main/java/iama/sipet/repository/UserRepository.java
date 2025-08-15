@@ -19,9 +19,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
     @Query("SELECT u FROM UserEntity u WHERE u.id = ?1")
     public Optional<UserEntity> findById(Long id);
 
-    @Query("SELECT u FROM UserEntity u WHERE u.foto = ?1")
-    Optional<UserEntity> findByFoto(String encode);
-
     @Query(value =  "SELECT * FROM user WHERE estado = true AND rol = false ORDER BY fecha_registro DESC", nativeQuery = true)
     List<UserEntity> findOperadoresActivos();
 

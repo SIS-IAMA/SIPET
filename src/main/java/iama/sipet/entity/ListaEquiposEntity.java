@@ -66,7 +66,4 @@ public class ListaEquiposEntity {
             return null;
         }
     }
-
-    @JsonIgnore
-    public byte[] getPDF() {return this.pdf;}
 }

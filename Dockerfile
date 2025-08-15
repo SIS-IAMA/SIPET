@@ -25,12 +25,6 @@ WORKDIR /app
 # Copiar el JAR
 COPY --from=builder /app/target/*.jar app.jar
 
-# Copiar carpeta upload (vacía o con contenido inicial)
-COPY upload ./upload
-
-# Crear carpeta persistente si no existe
-RUN mkdir -p /data && mkdir -p /app/upload && chmod -R 775 /app/upload /data
-
 # Usar /data si existe (Render lo monta automáticamente)
 ENV APP_UPLOAD_DIR=/data
 

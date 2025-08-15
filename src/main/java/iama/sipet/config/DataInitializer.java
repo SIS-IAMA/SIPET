@@ -1,3 +1,5 @@
+/*
+
 package iama.sipet.config;
 
 import iama.sipet.entity.EmpleadoEntity;
@@ -132,7 +134,6 @@ public class DataInitializer implements CommandLineRunner {
             empleadoRepo.save(emp);
         }
     }
-
 }
 
-
+*/

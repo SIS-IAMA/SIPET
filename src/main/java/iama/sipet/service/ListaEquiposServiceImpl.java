@@ -61,22 +61,6 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
                 return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.NOT_FOUND);
             }
 
-            // Verificar si se encontraron los equipos
-            for (ListaEquiposEntity existListEquipos : listaEquipos) {
-
-                // Iterar sobre los equipos para agregar datos a la foto en el response
-                for (EquipoTecnologicoEntity equipo : existListEquipos.getEquipoTecnologico()) {
-                    Optional<EquipoTecnologicoEntity> equipoOptional = equipoTecnologicoRespository
-                            .findById(equipo.getId());
-                    if (equipoOptional.isEmpty()) {
-                        response.setMetada("Respuesta Fallida", "-1",
-                                "Equipo con id " + equipo.getId() + " no encontrado");
-                        return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.NOT_FOUND);
-                    }
-                }
-
-            }
-
             response.getListaEquipoResponse().setListaEquipos(listaEquipos);
             response.setMetada("Respuesta OK", "00", "Respuesta exitosa");
         } catch (Exception e) {
@@ -100,17 +84,6 @@ public class ListaEquiposServiceImpl implements IListaEquiposService {
 
                 // Asignar datos para el listado pdf dependiendo del tipo de lista
                 ListaEquiposEntity existList = listOptional.get();
-
-                // Iterar sobre los equipos para comprobar que existen
-                for (EquipoTecnologicoEntity equipo : existList.getEquipoTecnologico()) {
-                    Optional<EquipoTecnologicoEntity> equipoOptional = equipoTecnologicoRespository
-                            .findById(equipo.getId());
-                    if (equipoOptional.isPresent()) {
-                        response.setMetada("Respuesta Fallida", "-1",
-                                "Equipo con id " + equipo.getId() + " no encontrado");
-                        return new ResponseEntity<ListaEquipoResponseRest>(response, HttpStatus.BAD_REQUEST);
-                    }
-                }
 
                 list.add(existList);
             } else {
